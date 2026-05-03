@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="DysLing — L'anglais en sons français. Outil pédagogique pour lecteurs dyslexiques francophones."/>
+<meta name="theme-color" content="#C9793B"/>
+<title>DysLing — L'anglais en sons français</title>
+<!-- ✅ ZÉRO dépendance externe. Fonctionne 100% hors ligne. -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;min-height:100vh}
+textarea,input,select{font-family:inherit}
+textarea:focus,input:focus,select:focus{outline:2px solid #C9793B44}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-thumb{background:#C9793B55;border-radius:3px}
+button{font-family:inherit;cursor:pointer}
+
+/* Layout */
+#app{min-height:100vh;padding-bottom:60px}
+.header{border-bottom:3px solid var(--accent-light);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header-logo{display:flex;align-items:center;gap:14px}
+.header-logo h1{font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--accent)}
+.header-logo p{font-size:10px;letter-spacing:0.1em;color:var(--text-muted)}
+.header-right{display:flex;gap:10px;align-items:center}
+.theme-dot{width:20px;height:20px;border-radius:50%;cursor:pointer}
+
+/* Tabs */
+.tabs{display:flex;gap:3px;padding:0 22px;border-bottom:2px solid var(--accent-light);margin-top:8px;flex-wrap:wrap}
+.tab-btn{padding:10px 14px;border-radius:10px 10px 0 0;border:none;cursor:pointer;font-weight:400;background:transparent;color:var(--text-muted);font-size:13px;transition:all .2s;font-family:Georgia,serif}
+.tab-btn.active{font-weight:700;background:var(--paper);color:var(--accent)}
+
+/* Content */
+.content{max-width:1200px;margin:0 auto;padding:22px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.panel{background:var(--paper);border-radius:16px;padding:22px;border:1px solid var(--accent-light)}
+.panel-accent{border:2px solid var(--accent-light)}
+.label{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--accent);display:block;margin-bottom:6px}
+
+/* Buttons */
+.btn-primary{padding:11px 26px;border-radius:50px;border:none;background:var(--accent);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px var(--accent-shadow);font-family:Georgia,serif;transition:opacity .2s}
+.btn-primary:disabled{opacity:.5;cursor:default}
+.btn-secondary{padding:9px 20px;border-radius:50px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;font-family:Georgia,serif}
+.btn-ghost{padding:7px 14px;border-radius:20px;border:1px solid var(--accent-light);background:transparent;color:var(--accent);font-size:12px;cursor:pointer;font-family:Georgia,serif}
+.btn-learn{padding:11px 26px;border-radius:50px;border:none;background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px #27ae6044;font-family:Georgia,serif}
+.btn-danger{padding:7px 14px;border-radius:20px;border:1px solid #e74c3c55;background:transparent;color:#e74c3c;font-size:12px;cursor:pointer;font-family:Georgia,serif}
+
+/* Inputs */
+.inp{padding:8px 12px;border-radius:8px;border:1.5px solid var(--accent-light);background:var(--bg);color:var(--text);font-size:14px;font-family:Georgia,serif}
+.textarea{width:100%;padding:16px;background:var(--paper);color:var(--text);border:1.5px solid var(--accent-light);border-radius:12px;resize:vertical;outline:none;font-family:Georgia,serif}
+
+/* Word chips */
+.word-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:10px;font-size:13px;cursor:pointer;transition:all .15s;margin:3px;position:relative;border:2px solid transparent}
+.word-chip:hover{transform:translateY(-1px)}
+.word-chip-ok{background:var(--accent-light);border-color:var(--accent-light);color:var(--accent);cursor:default}
+.chip-popup{position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:var(--paper);border-radius:12px;padding:14px;border:2px solid var(--accent-light);box-shadow:0 8px 24px #0002;min-width:240px;max-width:300px;animation:popIn .2s ease}
+
+/* Confidence dots */
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle}
+
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:#0009;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:var(--paper);border-radius:20px;padding:32px;max-width:560px;width:100%;border:2px solid var(--accent-light);box-shadow:0 20px 60px #0006}
+
+/* Misc */
+.badge-learn{background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;font-size:9px;font-weight:800;letter-spacing:.08em;padding:2px 6px;border-radius:6px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+.encouragement{padding:12px 16px;border-radius:12px;border:2px solid var(--accent-light);background:var(--accent-light)}
+.fade-in{animation:fadeIn .3s ease forwards}
+.spinner{display:inline-block;width:36px;height:36px;border:4px solid var(--accent-light);border-top:4px solid var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+
+/* Learn validation */
+.learn-item{padding:10px 14px;border-radius:10px;cursor:pointer;border:2px solid #27ae6033;transition:all .15s;display:flex;align-items:center;gap:8px}
+.learn-item.selected{border-color:#27ae60;background:#27ae6012}
+
+/* Range */
+input[type=range]{width:100%;accent-color:var(--accent)}
+
+/* RGPD box */
+.rgpd-card{padding:16px;border-radius:12px;border:1px solid var(--accent-light);background:var(--accent-bg)}
+
+/* Journal */
+.log-chip{padding:4px 10px;border-radius:8px;font-size:12px;background:var(--accent-light);border:1px solid var(--accent-light);display:inline-flex;gap:6px;align-items:center;margin:3px}
+
+/* Warn banner */
+.warn-banner{padding:10px 14px;border-radius:10px;border:1.5px solid #e67e2244;background:#e67e2210;font-size:13px;color:#c0392b;margin-top:10px;line-height:1.6}
+
+/* Mode selector */
+.mode-btn{padding:7px 16px;border-radius:20px;border:2px solid var(--accent-light);background:transparent;color:var(--text-muted);font-size:12px;font-weight:400;transition:all .2s;font-family:Georgia,serif;cursor:pointer}
+.mode-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:700}
+
+/* Checklist */
+.check-row{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--text)}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+@media(max-width:700px){
+  .grid-2{grid-template-columns:1fr}
+  .tabs{padding:0 8px}
+  .content{padding:12px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+"use strict";
+// ═══════════════════════════════════════════════════════════
+// DYSLING v28 — Vanilla JS, 100% hors ligne, RGPD conforme
+// Aucune dépendance externe. Aucun CDN. Aucun serveur requis.
+// ═══════════════════════════════════════════════════════════
+
+// ── DICTIONNAIRE DE BASE ────────────────────────────────────
+const WORD_DICT = {
+  "the":"ze","a":"e","an":"eun","i":"aï","he":"hi","she":"chi","we":"oui","be":"bi","me":"mi",
+  "my":"maï","his":"hiz","her":"heur","our":"aour","their":"dèr","it":"it","its":"its",
+  "they":"dé","them":"dem","us":"euss","are":"ar","were":"oueur","have":"hav","has":"haz",
+  "give":"guiv","live":"liv","love":"leuv","come":"keum","some":"seum","done":"deun",
+  "gone":"gon","none":"neun","one":"ouane","once":"ouance","where":"ouère","there":"dèr",
+  "here":"hière","through":"srou","though":"doo","although":"olsdoo","thought":"sote",
+  "bought":"bote","brought":"brote","fought":"fote","sought":"sote","enough":"inouf",
+  "rough":"reuf","tough":"teuf","shine":"chaïne","shone":"chone","learning":"leurning",
+  "learn":"leurn","english":"inglish","accessible":"accessibeul","everyone":"èvri ouane",
+  "everything":"èvri sing","every":"èvri","people":"piipeul","should":"choud",
+  "would":"woud","could":"koud","said":"sed","says":"sez","about":"eubaout",
+  "because":"bikoz","bright":"braït","night":"naït","light":"laït","right":"raït",
+  "might":"maït","fight":"faït","sight":"saït","fun":"feun","sky":"skaï","by":"baï",
+  "for":"for","cloud":"klaoud","clouds":"klaoudz","star":"star","stars":"starz",
+  "friend":"frend","friends":"frendz","again":"eguen","want":"wont","to":"tou",
+  "two":"tou","too":"tou","you":"iou","your":"ior","do":"dou","don't":"dont",
+  "can":"can","will":"wil","not":"not","no":"no","yes":"iès","hello":"helou",
+  "good":"goud","great":"grét","very":"vèri","see":"si","look":"louk","go":"go",
+  "get":"guet","make":"mék","take":"ték","know":"no","think":"sink",
+  "like":"laïk","time":"taïm","year":"ièr","day":"dé","way":"wé","man":"man",
+  "world":"weurld","life":"laïf","hand":"hande","part":"part","place":"pléss",
+  "week":"wiik","back":"bak","also":"olso","use":"iouz","new":"niou",
+  "first":"feurst","last":"last","long":"long","little":"liteul","own":"one",
+  "old":"olde","big":"big","high":"haï","small":"smol","large":"lardj",
+  "early":"eurli","young":"ieung","few":"fiou","bad":"bad","same":"sém",
+  "word":"weurd","number":"neumbeur","water":"woter","food":"foud","book":"bouk",
+  "school":"skoul","house":"haous","door":"dor","window":"windou","car":"kar",
+  "road":"rod","city":"siti","country":"keuntri","money":"meuni","work":"weurk",
+  "run":"reun","walk":"wok","talk":"tok","write":"raït","read":"riid",
+  "eat":"iit","sleep":"sliip","play":"plé","sing":"sing","dance":"danse",
+  "watch":"wotch","listen":"lisen","help":"help","try":"traï","need":"niid",
+  "thank":"sank","please":"pliiz","sorry":"sori","when":"ouen","what":"wot",
+  "why":"waï","how":"haou","who":"hou","which":"witch","all":"ol","any":"èni",
+  "more":"mor","most":"most","much":"meutch","many":"mèni","so":"so",
+  "now":"naou","then":"den","only":"onli","even":"iivène","still":"stil",
+  "never":"nèver","these":"diiz","those":"doze","before":"bifor",
+  "under":"eundeur","over":"oveur","once":"ouance","woman":"woumène",
+  "child":"tchaïlde","job":"djob","between":"bitwiin","both":"bose",
+};
+
+// ── RÈGLES PHONÉTIQUES ───────────────────────────────────────
+const DEFAULT_RULES = [
+  {id:"tch",grapheme:"tch",phoneme:"tch",example:"watch → wotch",  category:"Consonnes",active:true},
+  {id:"dge",grapheme:"dge",phoneme:"dj", example:"bridge → bridj", category:"Consonnes",active:true},
+  {id:"sh", grapheme:"sh", phoneme:"ch", example:"she → chi",      category:"Consonnes",active:true},
+  {id:"ch", grapheme:"ch", phoneme:"tch",example:"chair → tchair", category:"Consonnes",active:true},
+  {id:"th", grapheme:"th", phoneme:"s",  example:"thought → sote", category:"Consonnes",active:true},
+  {id:"ph", grapheme:"ph", phoneme:"f",  example:"phone → fone",   category:"Consonnes",active:true},
+  {id:"wh", grapheme:"wh", phoneme:"ou", example:"where → ouère",  category:"Consonnes",active:true},
+  {id:"ck", grapheme:"ck", phoneme:"k",  example:"back → bak",     category:"Consonnes",active:true},
+  {id:"ng", grapheme:"ng", phoneme:"ng", example:"sing → sing",    category:"Consonnes",active:true},
+  {id:"gh", grapheme:"gh", phoneme:"",   example:"light → laït",   category:"Consonnes",active:true},
+  {id:"wr", grapheme:"wr", phoneme:"r",  example:"write → raït",   category:"Consonnes",active:true},
+  {id:"kn", grapheme:"kn", phoneme:"n",  example:"know → no",      category:"Consonnes",active:true},
+  {id:"ough",grapheme:"ough",phoneme:"ote",example:"thought → sote",category:"Voyelles",active:true},
+  {id:"igh",grapheme:"igh",phoneme:"aï", example:"night → naït",   category:"Voyelles",active:true},
+  {id:"oo", grapheme:"oo", phoneme:"ou", example:"moon → moun",    category:"Voyelles",active:true},
+  {id:"ee", grapheme:"ee", phoneme:"ii", example:"see → sii",      category:"Voyelles",active:true},
+  {id:"ea", grapheme:"ea", phoneme:"ii", example:"read → riid",    category:"Voyelles",active:true},
+  {id:"ay", grapheme:"ay", phoneme:"é",  example:"day → dé",       category:"Voyelles",active:true},
+  {id:"ai", grapheme:"ai", phoneme:"é",  example:"rain → rén",     category:"Voyelles",active:true},
+  {id:"oa", grapheme:"oa", phoneme:"o",  example:"boat → bot",     category:"Voyelles",active:true},
+  {id:"ow", grapheme:"ow", phoneme:"o",  example:"know → no",      category:"Voyelles",active:true},
+  {id:"ou", grapheme:"ou", phoneme:"aou",example:"out → aout",     category:"Voyelles",active:true},
+  {id:"oi", grapheme:"oi", phoneme:"oï", example:"oil → oïl",      category:"Voyelles",active:true},
+  {id:"oy", grapheme:"oy", phoneme:"oï", example:"toy → toï",      category:"Voyelles",active:true},
+  {id:"ie", grapheme:"ie", phoneme:"aï", example:"tie → taï",      category:"Voyelles",active:true},
+  {id:"ue", grapheme:"ue", phoneme:"iou",example:"blue → bliou",   category:"Voyelles",active:true},
+  {id:"ew", grapheme:"ew", phoneme:"iou",example:"new → niou",     category:"Voyelles",active:true},
+  {id:"er", grapheme:"er", phoneme:"eur",example:"her → heur",     category:"Voyelles",active:true},
+  {id:"ir", grapheme:"ir", phoneme:"eur",example:"bird → beurde",  category:"Voyelles",active:true},
+  {id:"ur", grapheme:"ur", phoneme:"eur",example:"turn → teurn",   category:"Voyelles",active:true},
+  {id:"ar", grapheme:"ar", phoneme:"ar", example:"car → kar",      category:"Voyelles",active:true},
+  {id:"or", grapheme:"or", phoneme:"or", example:"for → for",      category:"Voyelles",active:true},
+  {id:"mb", grapheme:"mb", phoneme:"m",  example:"lamb → lam",     category:"Muettes",active:true},
+];
+
+// ── THÈMES ───────────────────────────────────────────────────
+const THEMES = {
+  cream:{bg:"#FDF6E3",text:"#3D2B1F",accent:"#C9793B",paper:"#FFFBF0"},
+  blue: {bg:"#E8F0F7",text:"#1A3045",accent:"#3A7AC0",paper:"#F0F6FF"},
+  green:{bg:"#E9F4EE",text:"#1C3A28",accent:"#2E7D52",paper:"#F2FBF5"},
+  dark: {bg:"#1A1A2E",text:"#E8E4DC",accent:"#F0A500",paper:"#252540"},
+  pink: {bg:"#FEF0F5",text:"#3A1A2A",accent:"#C4507A",paper:"#FFF5F9"},
+};
+const FONTS = [
+  {name:"Verdana",value:"Verdana,sans-serif"},
+  {name:"Georgia",value:"Georgia,serif"},
+  {name:"Arial",value:"Arial,sans-serif"},
+  {name:"Courier",value:"'Courier New',monospace"},
+];
+
+// ── ÉTAT GLOBAL ───────────────────────────────────────────────
+const S = {
+  tab: "transform",
+  dictTab: "phonemes",
+  theme: "cream",
+  font: FONTS[0].value,
+  fontSize: 20, lineH: 1.8, ltrSpc: 0.05, wrdSpc: 0.1,
+  inputText: "She thought about the night sky, where bright stars shine through the clouds. Learning English should be fun and accessible for everyone.",
+  outputText: "",
+  showOrig: true, hlWords: false,
+  rules: DEFAULT_RULES.map(r=>({...r})),
+  userDict: {},
+  newWordEn: "", newWordFr: "",
+  editRule: null, editWord: null,
+  newRuleG: "", newRuleP: "", newRuleEx: "", newRuleCat: "Consonnes",
+  // Correcteur
+  corrWriting: "",
+  corrResult: null,
+  corrLoading: false,
+  corrAiMode: false,
+  corrPending: [],
+  corrShowValidation: false,
+  corrShowLearn: false,
+  learnLog: [],
+  openChip: null,
+  chipCustom: {},
+  chipOverrides: {},
+  // Oral
+  voices: [], selVoice: null, rate: 0.85, pitch: 1.0, vol: 1.0,
+  wordByWord: false, speaking: false, curWord: -1, oralSrc: "phonetic",
+  // RGPD
+  rgpdOk: false,
+  showRGPD: false,
+  rgpdConsentDate: null,
+};
+
+// Chargement localStorage
+function loadState(){
+  try{
+    const prefs = JSON.parse(localStorage.getItem("dsl_prefs")||"{}");
+    if(prefs.theme) S.theme=prefs.theme;
+    if(prefs.font) S.font=prefs.font;
+    if(prefs.fontSize) S.fontSize=prefs.fontSize;
+    if(prefs.lineH) S.lineH=prefs.lineH;
+    if(prefs.ltrSpc!=null) S.ltrSpc=prefs.ltrSpc;
+    if(prefs.wrdSpc!=null) S.wrdSpc=prefs.wrdSpc;
+  }catch(e){}
+  try{ S.userDict = JSON.parse(localStorage.getItem("dsl_dict")||"{}"); }catch(e){}
+  try{ S.learnLog = JSON.parse(localStorage.getItem("dsl_learn_log")||"[]"); }catch(e){}
+  try{
+    const rgpd = JSON.parse(localStorage.getItem("dsl_rgpd")||"null");
+    if(rgpd && rgpd.ok){
+      S.rgpdOk = true;
+      S.rgpdConsentDate = rgpd.date || null;
+    }
+  }catch(e){}
+}
+function savePrefs(){
+  try{ localStorage.setItem("dsl_prefs",JSON.stringify({theme:S.theme,font:S.font,fontSize:S.fontSize,lineH:S.lineH,ltrSpc:S.ltrSpc,wrdSpc:S.wrdSpc})); }catch(e){}
+}
+function saveDict(){
+  try{ localStorage.setItem("dsl_dict",JSON.stringify(S.userDict)); }catch(e){}
+}
+function saveLearnLog(){
+  try{ localStorage.setItem("dsl_learn_log",JSON.stringify(S.learnLog.slice(-300))); }catch(e){}
+}
+function saveRgpd(ok){
+  try{
+    if(ok) localStorage.setItem("dsl_rgpd",JSON.stringify({ok:true,date:new Date().toISOString()}));
+    else localStorage.removeItem("dsl_rgpd");
+  }catch(e){}
+}
+
+// ── MOTEUR PHONÉTIQUE ────────────────────────────────────────
+function getMergedDict(){
+  const d = {};
+  Object.assign(d, WORD_DICT);
+  Object.entries(S.userDict).forEach(([k,v])=>{ d[k.toLowerCase()]=v; });
+  return d;
+}
+
+function transformWord(word, rules, dict){
+  const lower = word.toLowerCase();
+  const isCap = /^[A-Z]/.test(word);
+  const isAll = word===word.toUpperCase()&&word.length>1;
+  if(dict[lower]){
+    const r=dict[lower];
+    if(isAll) return r.toUpperCase();
+    if(isCap) return r[0].toUpperCase()+r.slice(1);
+    return r;
+  }
+  const n=lower.length;
+  const spans=new Array(n).fill(null);
+  const covered=new Array(n).fill(false);
+  for(const rule of rules){
+    if(!rule.active) continue;
+    const pat=rule.grapheme.toLowerCase(); const pl=pat.length;
+    if(!pl) continue;
+    let i=0;
+    while(i<=n-pl){
+      if(lower.slice(i,i+pl)===pat){
+        let free=true;
+        for(let k=i;k<i+pl;k++) if(covered[k]){free=false;break;}
+        if(free){spans[i]={out:rule.phoneme,len:pl};for(let k=i;k<i+pl;k++) covered[k]=true;i+=pl;continue;}
+      }
+      i++;
+    }
+  }
+  let result="";let i=0;
+  while(i<n){
+    if(spans[i]){result+=spans[i].out;i+=spans[i].len;}
+    else if(!covered[i]){result+=lower[i];i++;}
+    else i++;
+  }
+  result=result.replace(/([bcdfghjklmnpqrstvwxyz])e$/i,"$1");
+  if(isAll) return result.toUpperCase();
+  if(isCap) return result[0].toUpperCase()+result.slice(1);
+  return result;
+}
+
+function applyMap(text,rules,dict){
+  return text.split(/(\s+)/).map(seg=>{
+    if(/^\s+$/.test(seg)) return seg;
+    const m=seg.match(/^([^a-zA-Z]*)([a-zA-Z''-]+)([^a-zA-Z]*)$/);
+    if(!m) return seg;
+    return m[1]+transformWord(m[2],rules,dict)+m[3];
+  }).join("");
+}
+
+// ── MOTEUR INVERSE ────────────────────────────────────────────
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>j===0?i:0));
+  for(let j=1;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++)
+    dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function buildReverseDict(dict,rules){
+  const rev={};
+  Object.entries(dict).forEach(([en,fr])=>{
+    const k=fr.toLowerCase().trim();
+    if(!rev[k]) rev[k]=[];
+    if(!rev[k].includes(en)) rev[k].push(en);
+  });
+  return rev;
+}
+
+function reversePhonetics(word,rules){
+  const active=rules.filter(r=>r.active&&r.phoneme);
+  function gen(text,ri,variants){
+    variants.add(text);
+    if(ri>=active.length) return;
+    const r=active[ri];
+    const ph=r.phoneme.toLowerCase(),gr=r.grapheme.toLowerCase();
+    if(text.includes(ph)) gen(text.split(ph).join(gr),ri+1,variants);
+    gen(text,ri+1,variants);
+  }
+  const v=new Set();
+  gen(word.toLowerCase(),0,v);
+  return [...v];
+}
+
+function correctWord(phonWord,dict,rules){
+  const lower=phonWord.toLowerCase().trim();
+  if(!lower||lower.length<2) return{original:phonWord,correct:phonWord,suggestions:[],wasOk:true,confidence:1,method:"ok"};
+  const rev=buildReverseDict(dict,rules);
+  // 1. Correspondance exacte
+  if(rev[lower]) return{original:phonWord,correct:rev[lower][0],suggestions:rev[lower].slice(0,4),wasOk:false,confidence:1,method:"dict"};
+  // 2. Règles inverses
+  const variants=reversePhonetics(lower,rules);
+  const found=[];
+  variants.forEach(v=>{
+    if(dict[v]&&!found.includes(v)) found.push(v);
+    if(rev[v]) rev[v].forEach(w=>{if(!found.includes(w)) found.push(w);});
+  });
+  if(found.length>0) return{original:phonWord,correct:found[0],suggestions:found.slice(0,4),wasOk:false,confidence:.85,method:"rules"};
+  // 3. Fuzzy
+  const scored=[];
+  Object.entries(dict).forEach(([en,fr])=>{
+    const fl=fr.toLowerCase();
+    const dist=levenshtein(lower,fl);
+    const sim=1-dist/Math.max(lower.length,fl.length);
+    if(sim>0.55) scored.push({en,sim});
+  });
+  scored.sort((a,b)=>b.sim-a.sim);
+  if(scored.length>0) return{original:phonWord,correct:scored[0].en,suggestions:scored.slice(0,4).map(s=>s.en),wasOk:false,confidence:scored[0].sim,method:"fuzzy"};
+  return{original:phonWord,correct:phonWord,suggestions:[],wasOk:true,confidence:1,method:"unknown"};
+}
+
+function correctText(text,dict,rules){
+  const words=text.split(/(\s+)/);
+  const corrections=[];
+  let correctedText="";
+  words.forEach(seg=>{
+    if(/^\s+$/.test(seg)){correctedText+=seg;return;}
+    const m=seg.match(/^([^a-zA-ZÀ-ÿ]*)([a-zA-ZÀ-ÿ''-]+)([^a-zA-ZÀ-ÿ]*)$/);
+    if(!m){correctedText+=seg;return;}
+    const[,pre,word,post]=m;
+    const r=correctWord(word,dict,rules);
+    corrections.push(r);
+    const isCap=/^[A-Z]/.test(word);
+    correctedText+=pre+(isCap&&r.correct?r.correct[0].toUpperCase()+r.correct.slice(1):r.correct)+post;
+  });
+  const nb=corrections.filter(c=>!c.wasOk).length;
+  let enc=nb===0?"Excellent ! Tu as très bien écrit tous les mots ! 🌟":
+    nb<=2?`Très bien ! Seulement ${nb} mot(s) à corriger — tu progresses vraiment ! 👏`:
+    "Bravo pour ton effort ! Regarde les corrections et réessaie — tu vas y arriver ! 💪";
+  return{correctedText,corrections,encouragement:enc};
+}
+
+// ── RENDU ─────────────────────────────────────────────────────
+function applyTheme(t){
+  const c=THEMES[t]||THEMES.cream;
+  const r=document.documentElement.style;
+  r.setProperty("--bg",c.bg);
+  r.setProperty("--text",c.text);
+  r.setProperty("--accent",c.accent);
+  r.setProperty("--paper",c.paper);
+  r.setProperty("--accent-light",c.accent+"33");
+  r.setProperty("--accent-bg",c.accent+"0D");
+  r.setProperty("--accent-shadow",c.accent+"44");
+  r.setProperty("--text-muted",c.text+"88");
+  document.body.style.background=c.bg;
+  document.body.style.color=c.text;
+}
+
+function el(tag,attrs,children){
+  const e=document.createElement(tag);
+  if(attrs) Object.entries(attrs).forEach(([k,v])=>{
+    if(k==="class") e.className=v;
+    else if(k==="style") Object.assign(e.style,v);
+    else if(k.startsWith("on")) e.addEventListener(k.slice(2).toLowerCase(),v);
+    else if(k==="disabled") { if(v) e.setAttribute("disabled",""); }
+    else e.setAttribute(k,v);
+  });
+  if(children) [].concat(children).forEach(c=>{
+    if(c==null) return;
+    e.append(typeof c==="string"?document.createTextNode(c):c);
+  });
+  return e;
+}
+function div(attrs,children){return el("div",attrs,children);}
+function span(attrs,children){return el("span",attrs,children);}
+function btn(attrs,children){return el("button",attrs,children);}
+function inp(attrs){return el("input",attrs);}
+function txt(attrs,children){return el("textarea",attrs,children);}
+function sel(attrs,options,current){
+  const s=el("select",attrs);
+  options.forEach(([v,l])=>{
+    const o=el("option",{value:v});
+    o.textContent=l;
+    if(v===current) o.selected=true;
+    s.appendChild(o);
+  });
+  return s;
+}
+function lbl(cls,text,child){
+  const l=el("label",{class:cls});
+  if(text) l.appendChild(document.createTextNode(text));
+  if(child) l.appendChild(child);
+  return l;
+}
+
+function render(){
+  applyTheme(S.theme);
+  const root=document.getElementById("app");
+  root.innerHTML="";
+  root.style.background=THEMES[S.theme].bg;
+  root.appendChild(renderApp());
+}
+
+function renderApp(){
+  const wrap=div({id:"app-inner"});
+  if(S.showRGPD) wrap.appendChild(renderRGPDModal());
+  wrap.appendChild(renderHeader());
+  wrap.appendChild(renderTabs());
+  const content=div({class:"content fade-in"});
+  if(S.tab==="transform") content.appendChild(renderTransform());
+  else if(S.tab==="correct") content.appendChild(renderCorrector());
+  else if(S.tab==="read") content.appendChild(renderRead());
+  else if(S.tab==="oral") content.appendChild(renderOral());
+  else if(S.tab==="library") content.appendChild(renderLibrary());
+  else if(S.tab==="settings") content.appendChild(renderSettings());
+  else if(S.tab==="rgpd") content.appendChild(renderRGPDPage());
+  wrap.appendChild(content);
+  return wrap;
+}
+
+// ── HEADER ────────────────────────────────────────────────────
+function renderHeader(){
+  const C=THEMES[S.theme];
+  const h=div({class:"header",style:{background:`linear-gradient(135deg,${C.accent}18,${C.bg})`}});
+  const logo=div({class:"header-logo"});
+  logo.append(span({style:{fontSize:"34px"}},"🔤"));
+  const info=div();
+  const h1=el("h1");h1.textContent="DysLing";info.appendChild(h1);
+  const p=el("p");p.textContent="L'ANGLAIS EN SONS FRANÇAIS · OUTIL PÉDAGOGIQUE DYSLEXIE";info.appendChild(p);
+  logo.appendChild(info);
+  h.appendChild(logo);
+  const right=div({class:"header-right"});
+  right.appendChild(btn({class:"btn-ghost",onClick:()=>{S.showRGPD=true;render();}},"🔒 RGPD"));
+  const dots=div({style:{display:"flex",gap:"5px"}});
+  Object.entries(THEMES).forEach(([k,v])=>{
+    const d=btn({class:"theme-dot",title:k,style:{background:v.bg,border:S.theme===k?`2.5px solid ${v.accent}`:`1.5px solid ${v.text}33`},onClick:()=>{S.theme=k;savePrefs();render();}});
+    dots.appendChild(d);
+  });
+  right.appendChild(dots);
+  h.appendChild(right);
+  return h;
+}
+
+// ── TABS ──────────────────────────────────────────────────────
+function renderTabs(){
+  const tabs_=[
+    {k:"transform",l:"✏️ Transformer"},
+    {k:"correct",  l:"🎓 Correcteur élève"},
+    {k:"read",     l:"👁 Lire"},
+    {k:"oral",     l:"🔊 Lecture orale"},
+    {k:"library",  l:"📚 Bibliothèque"},
+    {k:"settings", l:"⚙️ Réglages"},
+    {k:"rgpd",     l:"🔒 Confidentialité"},
+  ];
+  const bar=div({class:"tabs"});
+  tabs_.forEach(t=>{
+    const b=btn({class:"tab-btn"+(S.tab===t.k?" active":""),onClick:()=>{S.tab=t.k;render();}});
+    b.textContent=t.l;
+    bar.appendChild(b);
+  });
+  return bar;
+}
+
+// ── TRANSFORMER ───────────────────────────────────────────────
+function renderTransform(){
+  const dict=getMergedDict();
+  const wrap=div();
+  const grid=div({class:"grid-2"});
+
+  const leftL=el("label",{class:"label"},"TEXTE ANGLAIS ORIGINAL");
+  const ta=txt({class:"textarea",style:{minHeight:"220px",fontSize:"16px",lineHeight:"1.7"}});
+  ta.value=S.inputText;
+  ta.addEventListener("input",e=>{S.inputText=e.target.value;S.outputText="";});
+  const left=div();left.appendChild(leftL);left.appendChild(ta);
+  grid.appendChild(left);
+
+  const rightL=el("label",{class:"label"},"VERSION PHONÉTIQUE FRANCISÉE");
+  const out=div({class:"panel",style:{minHeight:"220px",...textStyle()}});
+  out.style.whiteSpace="pre-wrap";
+  if(S.outputText) out.textContent=S.outputText;
+  else{const ph=span({style:{color:THEMES[S.theme].text+"44",fontStyle:"italic"}},"Le texte transformé apparaîtra ici...");out.appendChild(ph);}
+  const right=div();right.appendChild(rightL);right.appendChild(out);
+  grid.appendChild(right);
+
+  const btns=div({style:{gridColumn:"1/-1",display:"flex",gap:"12px",justifyContent:"center",flexWrap:"wrap"}});
+  btns.appendChild(btn({class:"btn-primary",onClick:()=>{
+    S.outputText=applyMap(S.inputText,S.rules,dict);render();
+  }},"🔄 Transformer"));
+  if(S.outputText){
+    btns.appendChild(btn({class:"btn-secondary",onClick:()=>{S.tab="read";render();}},"👁 Lire"));
+    btns.appendChild(btn({class:"btn-secondary",onClick:()=>{S.tab="oral";render();}},"🔊 Écouter"));
+    btns.appendChild(btn({class:"btn-secondary",style:{borderColor:THEMES[S.theme].text+"22",color:THEMES[S.theme].text+"88",fontSize:"13px"},onClick:()=>navigator.clipboard&&navigator.clipboard.writeText(S.outputText)},"📋 Copier"));
+  }
+  grid.appendChild(btns);
+
+  const C=THEMES[S.theme];
+  const info=div({class:"panel",style:{gridColumn:"1/-1",padding:"12px 18px"}});
+  info.innerHTML=`<span style="font-size:13px;color:${C.text}88">✅ <strong>${S.rules.filter(r=>r.active).length}</strong> règles actives · <strong>${Object.keys(dict).length}</strong> mots au dictionnaire · <strong>100 % local 🔒</strong> — aucune donnée envoyée</span>`;
+  grid.appendChild(info);
+
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+// ── CORRECTEUR INTELLIGENT ────────────────────────────────────
+function renderCorrector(){
+  const C=THEMES[S.theme];
+  const dict=getMergedDict();
+  const wrap=div({style:{display:"flex",flexDirection:"column",gap:"20px"}});
+
+  // En-tête
+  const hdr=div({class:"panel",style:{background:`linear-gradient(135deg,${C.accent}12,${C.paper})`,border:`2px solid ${C.accent}33`}});
+  const htop=div({style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:"10px"}});
+  const htitle=div();
+  const h2=el("h2",{style:{margin:"0 0 6px",fontSize:"19px",color:C.accent}});
+  h2.textContent="🎓 Correcteur intelligent";
+  h2.appendChild(span({class:"badge-learn"},"APPRENANT"));
+  htitle.appendChild(h2);
+  const hp=el("p",{style:{margin:0,fontSize:"13px",color:C.text+"99",lineHeight:"1.7",maxWidth:"600px"}});
+  hp.textContent="Écris en phonétique francisée → DysLing retrouve l'anglais correct et enrichit automatiquement son dictionnaire à chaque correction validée.";
+  htitle.appendChild(hp);
+  htop.appendChild(htitle);
+
+  const logBtn=btn({class:"btn-ghost",style:{position:"relative"},onClick:()=>{S.corrShowLearn=!S.corrShowLearn;render();}});
+  logBtn.textContent="📊 Journal";
+  if(S.learnLog.length>0){
+    const badge=span({style:{position:"absolute",top:"-4px",right:"-4px",background:C.accent,color:"#fff",borderRadius:"50%",width:"16px",height:"16px",fontSize:"9px",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"800"}},String(S.learnLog.length));
+    logBtn.appendChild(badge);
+  }
+  htop.appendChild(logBtn);
+  hdr.appendChild(htop);
+
+  // Sélecteur mode
+  const modeRow=div({style:{marginTop:"14px",display:"flex",gap:"8px",alignItems:"center",flexWrap:"wrap"}});
+  modeRow.appendChild(span({style:{fontSize:"12px",color:C.text+"77"}},"Mode :"));
+  [
+    {ai:false,l:"🔒 Local (hors ligne)",desc:"Rapide, 100 % privé, aucune donnée envoyée"},
+    {ai:true, l:"🤖 IA Claude",desc:"Plus précis – nécessite internet + consentement RGPD explicite"},
+  ].forEach(({ai,l,desc})=>{
+    const b=btn({class:"mode-btn"+(S.corrAiMode===ai?" active":""),title:desc,onClick:()=>{S.corrAiMode=ai;render();}});
+    b.textContent=l;
+    modeRow.appendChild(b);
+  });
+  if(S.corrAiMode&&!S.rgpdOk){
+    const w=span({style:{fontSize:"11px",color:"#e74c3c"}});
+    w.textContent="⚠️ Consentement RGPD requis";
+    modeRow.appendChild(w);
+  }
+  if(S.corrAiMode){
+    const warn=div({class:"warn-banner"});
+    warn.innerHTML=`<strong>⚠️ Mode IA — Information RGPD obligatoire :</strong><br>Le texte saisi sera transmis à l'API Anthropic (serveurs aux États-Unis). Aucune donnée personnelle ne doit figurer dans ce texte. Ce transfert hors UE est encadré par les clauses contractuelles types de la Commission européenne (art. 46 RGPD). ${S.rgpdOk?`<span style="color:#27ae60">✅ Consentement donné le ${S.rgpdConsentDate?new Date(S.rgpdConsentDate).toLocaleDateString("fr-FR"):""}</span>`:'<strong style="color:#e74c3c">Vous devez accepter en bas ou dans l\'onglet RGPD pour activer ce mode.</strong>'}`;
+    modeRow.appendChild(warn);
+  }
+  hdr.appendChild(modeRow);
+  wrap.appendChild(hdr);
+
+  // Grille saisie / résultats
+  const grid=div({class:"grid-2"});
+
+  // Saisie
+  const left=div();
+  left.appendChild(el("label",{class:"label"},"✏️ TEXTE DE L'ÉLÈVE (phonétique francisée)"));
+  const taEl=txt({class:"textarea",style:{minHeight:"200px",...textStyle()}});
+  taEl.value=S.corrWriting;
+  taEl.placeholder="Exemples :\n• chi sote eubaout ze naït skaï\n• aï wont tou leurne inglish\n• ze klaoudz ar braït\n• dé ar maï frèndz";
+  taEl.addEventListener("input",e=>{S.corrWriting=e.target.value;S.corrResult=null;S.corrShowValidation=false;S.openChip=null;});
+  left.appendChild(taEl);
+  const btnRow=div({style:{marginTop:"12px",display:"flex",gap:"10px",flexWrap:"wrap"}});
+  const corrBtn=btn({class:"btn-primary",disabled:!S.corrWriting.trim()||S.corrLoading,onClick:()=>doCorrect(dict)});
+  corrBtn.textContent=S.corrLoading?"⏳ Analyse...":"🔍 Corriger";
+  btnRow.appendChild(corrBtn);
+  if(S.corrWriting){
+    btnRow.appendChild(btn({class:"btn-secondary",style:{borderColor:C.text+"33",color:C.text+"77",fontSize:"12px"},onClick:()=>{S.corrWriting="";S.corrResult=null;S.openChip=null;render();}},"🗑 Effacer"));
+  }
+  left.appendChild(btnRow);
+  if(S.corrResult&&!S.corrShowValidation){
+    const tip=div({style:{marginTop:"12px",padding:"10px 14px",background:`${C.accent}10`,borderRadius:"10px",border:`1px solid ${C.accent}22`,fontSize:"12px",color:C.text+"88"}});
+    tip.textContent="💡 Cliquez sur chaque correction pour l'ajuster avant d'enregistrer.";
+    left.appendChild(tip);
+  }
+  grid.appendChild(left);
+
+  // Résultats
+  const right=div({style:{display:"flex",flexDirection:"column",gap:"12px"}});
+  if(!S.corrResult&&!S.corrLoading){
+    const empty=div({class:"panel",style:{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"200px",flexDirection:"column",gap:"12px"}});
+    empty.appendChild(span({style:{fontSize:"48px"}},"🎓"));
+    const ep=el("p",{style:{color:C.text+"55",fontSize:"14px",textAlign:"center",maxWidth:"200px"}});
+    ep.textContent="Écris à gauche puis clique sur Corriger";
+    empty.appendChild(ep);
+    right.appendChild(empty);
+  }
+  if(S.corrLoading){
+    const loading=div({class:"panel",style:{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"200px",flexDirection:"column",gap:"16px"}});
+    loading.appendChild(div({class:"spinner"}));
+    const lp=el("p",{style:{color:C.text+"66",fontSize:"14px"}});
+    lp.textContent=S.corrAiMode?"L'IA analyse votre texte...":"Correction en cours...";
+    loading.appendChild(lp);
+    right.appendChild(loading);
+  }
+  if(S.corrResult&&!S.corrLoading){
+    // Encouragement
+    const enc=div({class:"encouragement"});
+    enc.innerHTML=`<span style="font-size:18px;margin-right:8px">⭐</span><span style="font-size:14px;color:${C.accent};font-weight:600">${S.corrResult.encouragement}</span>`;
+    right.appendChild(enc);
+
+    // Texte corrigé
+    const corrPanel=div({class:"panel"});
+    const corrLabel=div({style:{fontSize:"10px",fontWeight:"700",letterSpacing:".12em",color:C.accent,marginBottom:"10px"}});
+    corrLabel.textContent="TEXTE ANGLAIS CORRIGÉ";
+    corrPanel.appendChild(corrLabel);
+    const corrTxt=el("p",{style:{...textStyle(),margin:"0 0 12px",fontSize:"18px"}});
+    corrTxt.textContent=buildCorrectedText();
+    corrPanel.appendChild(corrTxt);
+    const corrBtns=div({style:{display:"flex",gap:"8px",flexWrap:"wrap"}});
+    corrBtns.appendChild(btn({class:"btn-secondary",style:{fontSize:"12px",padding:"6px 14px"},onClick:()=>speakText(buildCorrectedText(),"en-GB")},"🔊 Écouter"));
+    corrBtns.appendChild(btn({class:"btn-secondary",style:{fontSize:"12px",padding:"6px 14px",borderColor:C.text+"33",color:C.text+"77"},onClick:()=>navigator.clipboard&&navigator.clipboard.writeText(buildCorrectedText())},"📋 Copier"));
+    corrPanel.appendChild(corrBtns);
+    right.appendChild(corrPanel);
+
+    // Chips
+    const chipPanel=div({class:"panel"});
+    const chipHeader=div({style:{fontSize:"10px",fontWeight:"700",letterSpacing:".12em",color:C.text+"88",marginBottom:"12px",display:"flex",justifyContent:"space-between"}});
+    const nb=S.corrResult.corrections.filter(c=>!c.wasOk).length;
+    const nbOk=S.corrResult.corrections.filter(c=>c.wasOk).length;
+    chipHeader.textContent=`CORRECTIONS MOT PAR MOT · ${nb} corrigé(s) · ${nbOk} correct(s)`;
+    const chipHint=span({style:{fontWeight:"400",color:C.text+"44"}});
+    chipHint.textContent=" · Cliquez pour modifier";
+    chipHeader.appendChild(chipHint);
+    chipPanel.appendChild(chipHeader);
+    const chips=div({style:{display:"flex",flexWrap:"wrap",position:"relative"}});
+    S.corrResult.corrections.forEach((c,idx)=>chips.appendChild(renderChip(c,idx,dict)));
+    chipPanel.appendChild(chips);
+    right.appendChild(chipPanel);
+
+    // Bouton apprentissage
+    if(nb>0&&!S.corrShowValidation){
+      right.appendChild(btn({class:"btn-learn",onClick:()=>prepareLearning(dict)},"📚 Enregistrer ces corrections dans le dictionnaire"));
+    }
+  }
+  grid.appendChild(right);
+  wrap.appendChild(grid);
+
+  // Panneau validation
+  if(S.corrShowValidation) wrap.appendChild(renderValidationPanel());
+
+  // Journal
+  if(S.corrShowLearn) wrap.appendChild(renderLearnJournal());
+
+  return wrap;
+}
+
+function buildCorrectedText(){
+  if(!S.corrResult) return "";
+  return S.corrResult.corrections.map((c,i)=>(S.chipOverrides[i]||c.correct)).join(" ");
+}
+
+function renderChip(c,idx,dict){
+  const C=THEMES[S.theme];
+  const override=S.chipOverrides[idx];
+  const displayed=override||c.correct;
+  const isOpen=S.openChip===idx;
+
+  if(c.wasOk){
+    const chip=div({class:"word-chip word-chip-ok"});
+    chip.textContent="✅ "+c.original;
+    return chip;
+  }
+
+  const conf=c.confidence||0;
+  const method=c.method;
+  const dotColor=method==="dict"?"#27ae60":method==="ai"?"#27ae60":conf>0.8?"#2980b9":conf>0.6?"#e67e22":"#e74c3c";
+  const isOverridden=!!override;
+
+  const chip=div({class:"word-chip",style:{background:isOverridden?"#27ae6015":`${dotColor}12`,borderColor:isOverridden?"#27ae6066":`${dotColor}55`,position:"relative"}});
+
+  const orig=span({style:{color:"#c0392b",textDecoration:"underline",textDecorationStyle:"wavy",fontSize:"12px"}});
+  orig.textContent=c.original;
+  chip.appendChild(orig);
+  chip.appendChild(span({style:{color:C.text+"44",margin:"0 5px"}},"→"));
+  const corr=span({style:{color:isOverridden?"#27ae60":dotColor,fontWeight:"700"}});
+  corr.textContent=displayed;
+  chip.appendChild(corr);
+  if(isOverridden) chip.appendChild(span({style:{fontSize:"9px",marginLeft:"4px",color:"#27ae60"}},"✏️"));
+  chip.appendChild(span({class:"dot",style:{background:dotColor,marginLeft:"5px",opacity:".7"}}));
+  chip.appendChild(span({style:{fontSize:"11px",marginLeft:"2px",color:C.text+"44"}},"▾"));
+
+  chip.addEventListener("click",e=>{
+    e.stopPropagation();
+    S.openChip=isOpen?null:idx;
+    S.chipCustom[idx]="";
+    render();
+  });
+
+  if(isOpen){
+    const popup=div({class:"chip-popup"});
+    const ptitle=div({style:{fontSize:"11px",color:C.text+"77",marginBottom:"10px"}});
+    ptitle.innerHTML=`<strong style="color:${C.accent}">"${c.original}"</strong> — ${method==="dict"?"Dictionnaire":method==="ai"?"IA Claude":method==="rules"?"Règles phonétiques":conf>0.8?"Bonne correspondance":conf>0.6?"Probable":"Incertain"}`;
+    if(c.explanation){
+      const exp=el("p",{style:{margin:"4px 0 0",fontSize:"11px",color:C.text+"88",fontStyle:"italic"}});
+      exp.textContent=c.explanation;
+      ptitle.appendChild(exp);
+    }
+    popup.appendChild(ptitle);
+    if(c.suggestions&&c.suggestions.length>0){
+      const sl=div({style:{marginBottom:"10px"}});
+      const sltitle=div({style:{fontSize:"10px",fontWeight:"700",letterSpacing:".1em",color:C.text+"66",marginBottom:"6px"}});
+      sltitle.textContent="SUGGESTIONS";
+      sl.appendChild(sltitle);
+      const sw=div({style:{display:"flex",flexWrap:"wrap",gap:"5px"}});
+      c.suggestions.forEach(s=>{
+        const sb=btn({style:{padding:"4px 10px",borderRadius:"8px",border:`1.5px solid ${C.accent}55`,background:s===displayed?`${C.accent}22`:"transparent",color:C.text,cursor:"pointer",fontSize:"12px",fontWeight:s===displayed?"700":"400",fontFamily:"Georgia,serif"},onClick:(e)=>{e.stopPropagation();S.chipOverrides[idx]=s;S.openChip=null;render();}});
+        sb.textContent=s;
+        sw.appendChild(sb);
+      });
+      sl.appendChild(sw);
+      popup.appendChild(sl);
+    }
+    const customRow=div({style:{display:"flex",gap:"6px",marginBottom:"8px"}});
+    const ci=inp({class:"inp",style:{flex:"1",padding:"5px 10px",fontSize:"12px"},placeholder:"Correction manuelle..."});
+    ci.value=S.chipCustom[idx]||"";
+    ci.addEventListener("input",e=>{S.chipCustom[idx]=e.target.value;});
+    ci.addEventListener("click",e=>e.stopPropagation());
+    ci.addEventListener("keydown",e=>{if(e.key==="Enter"&&ci.value.trim()){S.chipOverrides[idx]=ci.value.trim();S.openChip=null;render();}});
+    customRow.appendChild(ci);
+    customRow.appendChild(btn({style:{padding:"5px 10px",borderRadius:"7px",border:"none",background:C.accent,color:"#fff",cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"},onClick:(e)=>{e.stopPropagation();if((S.chipCustom[idx]||"").trim()){S.chipOverrides[idx]=S.chipCustom[idx].trim();S.openChip=null;render();}}},"✓"));
+    popup.appendChild(customRow);
+    const pbotrow=div({style:{display:"flex",gap:"6px"}});
+    pbotrow.appendChild(btn({style:{flex:1,padding:"5px",borderRadius:"7px",border:`1px solid ${C.accent}44`,background:"transparent",color:C.accent,cursor:"pointer",fontSize:"11px",fontFamily:"Georgia,serif"},onClick:(e)=>{e.stopPropagation();speakText(displayed,"en-GB");}},"🔊 Écouter"));
+    pbotrow.appendChild(btn({style:{padding:"5px 10px",borderRadius:"7px",border:`1px solid ${C.text}22`,background:"transparent",color:C.text+"66",cursor:"pointer",fontSize:"11px",fontFamily:"Georgia,serif"},onClick:(e)=>{e.stopPropagation();S.openChip=null;render();}},"✕"));
+    popup.appendChild(pbotrow);
+    chip.appendChild(popup);
+    document.addEventListener("click",()=>{if(S.openChip===idx){S.openChip=null;render();}},{once:true});
+  }
+  return chip;
+}
+
+function prepareLearning(dict){
+  const toLearn=[];
+  S.corrResult.corrections.forEach((c,i)=>{
+    if(c.wasOk) return;
+    const correct=(S.chipOverrides[i]||c.correct).toLowerCase().trim();
+    const original=c.original.toLowerCase().trim();
+    if(original===correct) return;
+    const alreadyKnown=dict[correct]&&dict[correct].toLowerCase()===original;
+    if(!alreadyKnown) toLearn.push({phonetic:original,english:correct,source:S.chipOverrides[i]?"teacher":c.method});
+  });
+  S.corrPending=toLearn;
+  S.corrShowValidation=true;
+  S.corrPendingSelected=new Set(toLearn.map((_,i)=>i));
+  render();
+}
+
+function renderValidationPanel(){
+  const C=THEMES[S.theme];
+  if(!S.corrPendingSelected) S.corrPendingSelected=new Set(S.corrPending.map((_,i)=>i));
+  const panel=div({class:"panel fade-in",style:{border:`2px solid #27ae6066`,background:`#27ae6008`}});
+  const top=div({style:{display:"flex",alignItems:"center",gap:"12px",marginBottom:"16px"}});
+  top.appendChild(span({style:{fontSize:"28px"}},"📚"));
+  const info=div();
+  const ih=el("h3",{style:{margin:0,color:"#27ae60",fontSize:"17px"}});ih.textContent="Enrichir le dictionnaire";
+  info.appendChild(ih);
+  const ip=el("p",{style:{margin:"2px 0 0",fontSize:"12px",color:C.text+"77"}});
+  ip.textContent="Sélectionnez les associations à mémoriser. Elles seront prioritaires pour les prochaines corrections.";
+  info.appendChild(ip);
+  top.appendChild(info);
+  panel.appendChild(top);
+
+  if(S.corrPending.length===0){
+    const msg=el("p",{style:{textAlign:"center",color:"#27ae60",fontSize:"14px",padding:"10px"}});
+    msg.textContent="✅ Tous ces mots sont déjà dans le dictionnaire !";
+    panel.appendChild(msg);
+    panel.appendChild(btn({class:"btn-secondary",style:{marginTop:"10px",borderColor:"#27ae60",color:"#27ae60"},onClick:()=>{S.corrShowValidation=false;render();}},"Fermer"));
+    return panel;
+  }
+
+  const grid=div({style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:"8px",marginBottom:"16px"}});
+  S.corrPending.forEach((item,i)=>{
+    const row=div({class:"learn-item"+(S.corrPendingSelected.has(i)?" selected":""),onClick:()=>{
+      if(S.corrPendingSelected.has(i)) S.corrPendingSelected.delete(i);
+      else S.corrPendingSelected.add(i);
+      render();
+    }});
+    const cb=inp({type:"checkbox"});cb.checked=S.corrPendingSelected.has(i);
+    row.appendChild(cb);
+    row.appendChild(span({style:{fontFamily:"monospace",color:C.text+"88",fontSize:"13px"}},item.phonetic));
+    row.appendChild(span({style:{color:C.text+"44"}},"→"));
+    row.appendChild(span({style:{fontFamily:"monospace",color:"#27ae60",fontWeight:"700",fontSize:"13px"}},item.english));
+    if(item.source==="teacher"){
+      const badge=span({style:{fontSize:"9px",background:"#27ae60",color:"#fff",padding:"1px 5px",borderRadius:"5px"}});
+      badge.textContent="prof";row.appendChild(badge);
+    }
+    grid.appendChild(row);
+  });
+  panel.appendChild(grid);
+
+  const foot=div({style:{display:"flex",gap:"10px",justifyContent:"flex-end"}});
+  foot.appendChild(btn({class:"btn-secondary",style:{borderColor:C.text+"33",color:C.text+"77"},onClick:()=>{S.corrShowValidation=false;render();}},"Annuler"));
+  const nb=S.corrPendingSelected.size;
+  const confirmBtn=btn({class:"btn-learn",disabled:nb===0,onClick:()=>{
+    const approved=[...S.corrPendingSelected].map(i=>S.corrPending[i]);
+    const now=new Date().toISOString();
+    approved.forEach(item=>{
+      S.userDict[item.english]=item.phonetic;
+      S.learnLog.push({date:now,english:item.english,phonetic:item.phonetic,source:item.source});
+    });
+    saveDict(); saveLearnLog();
+    S.corrShowValidation=false; S.corrPending=[]; S.corrPendingSelected=null;
+    render();
+  }});
+  confirmBtn.textContent=`✅ Enregistrer ${nb} mot${nb>1?"s":""}`;
+  foot.appendChild(confirmBtn);
+  panel.appendChild(foot);
+  return panel;
+}
+
+function renderLearnJournal(){
+  const C=THEMES[S.theme];
+  const panel=div({class:"panel fade-in",style:{border:`2px solid ${C.accent}44`}});
+  const top=div({style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}});
+  const info=div();
+  const ih=el("h3",{style:{margin:0,color:C.accent,fontSize:"17px"}});ih.textContent="📊 Journal d'apprentissage";
+  info.appendChild(ih);
+  const ip=el("p",{style:{margin:"2px 0 0",fontSize:"12px",color:C.text+"66"}});
+  ip.textContent=S.learnLog.length+" entrée(s) enregistrée(s) — stockées localement sur votre appareil";
+  info.appendChild(ip);
+  top.appendChild(info);
+  const btns=div({style:{display:"flex",gap:"8px"}});
+  if(S.learnLog.length>0){
+    btns.appendChild(btn({class:"btn-danger",onClick:()=>{if(confirm("Effacer tout le journal d'apprentissage ?")){ S.learnLog=[];saveLearnLog();render();} }},"🗑 Vider"));
+  }
+  btns.appendChild(btn({class:"btn-ghost",onClick:()=>{S.corrShowLearn=false;render();}},"✕ Fermer"));
+  top.appendChild(btns);
+  panel.appendChild(top);
+  if(S.learnLog.length===0){
+    const msg=el("p",{style:{textAlign:"center",color:C.text+"55",fontSize:"14px",padding:"20px"}});
+    msg.textContent="Aucun apprentissage enregistré pour l'instant.";
+    panel.appendChild(msg);
+  } else {
+    const sorted=[...S.learnLog].reverse();
+    const grouped={};
+    sorted.forEach(item=>{
+      const d=item.date?item.date.slice(0,10):"inconnu";
+      if(!grouped[d]) grouped[d]=[];
+      grouped[d].push(item);
+    });
+    Object.entries(grouped).forEach(([date,items])=>{
+      const dateLabel=div({style:{fontSize:"11px",fontWeight:"700",letterSpacing:".1em",color:C.text+"66",margin:"0 0 8px"}});
+      dateLabel.textContent=date;
+      panel.appendChild(dateLabel);
+      const row=div({style:{display:"flex",flexWrap:"wrap",marginBottom:"14px"}});
+      items.forEach(item=>{
+        const chip=div({class:"log-chip"});
+        chip.appendChild(span({style:{fontFamily:"monospace",color:C.text+"88"}},item.phonetic));
+        chip.appendChild(span({style:{color:C.text+"44"}},"→"));
+        chip.appendChild(span({style:{fontFamily:"monospace",color:C.accent,fontWeight:"700"}},item.english));
+        if(item.source){const s=span({style:{fontSize:"9px",background:`${C.accent}22`,color:C.accent,padding:"1px 5px",borderRadius:"5px"}});s.textContent=item.source;chip.appendChild(s);}
+        row.appendChild(chip);
+      });
+      panel.appendChild(row);
+    });
+  }
+  return panel;
+}
+
+// ── LIRE ──────────────────────────────────────────────────────
+function renderRead(){
+  const C=THEMES[S.theme];
+  const dict=getMergedDict();
+  const wrap=div();
+  const opts=div({style:{display:"flex",gap:"16px",flexWrap:"wrap",marginBottom:"16px",alignItems:"center"}});
+  [[S.showOrig,"Afficher l'original",v=>{S.showOrig=v;render();}],
+   [S.hlWords,"Colorer les mots alternés",v=>{S.hlWords=v;render();}]].forEach(([val,label,fn])=>{
+    const l=el("label",{class:"check-row"});
+    const cb=inp({type:"checkbox"});cb.checked=val;cb.addEventListener("change",e=>fn(e.target.checked));
+    l.appendChild(cb);l.appendChild(document.createTextNode(" "+label));
+    opts.appendChild(l);
+  });
+  wrap.appendChild(opts);
+  if(!S.outputText){
+    const empty=div({style:{textAlign:"center",padding:"60px",color:C.text+"66"}});
+    empty.innerHTML=`<div style="font-size:48px;margin-bottom:12px">📝</div>Transformez d'abord un texte dans l'onglet <strong>Transformer</strong>`;
+    wrap.appendChild(empty);
+  } else {
+    const grid=div({class:"grid-2"});
+    if(S.showOrig){
+      const orig=div({class:"panel"});
+      const ot=div({style:{fontSize:"10px",fontWeight:"700",letterSpacing:".12em",color:C.accent+"99",marginBottom:"14px"}});
+      ot.textContent="TEXTE ORIGINAL (ANGLAIS)";orig.appendChild(ot);
+      const op=el("p",{style:{...textStyle(),margin:0}});op.textContent=S.inputText;orig.appendChild(op);
+      grid.appendChild(orig);
+    }
+    const phon=div({class:"panel panel-accent",style:{background:`linear-gradient(135deg,${C.paper},${C.accent}08)`}});
+    const pt=div({style:{fontSize:"10px",fontWeight:"700",letterSpacing:".12em",color:C.accent,marginBottom:"14px"}});
+    pt.textContent="LECTURE PHONÉTIQUE FRANCISÉE";phon.appendChild(pt);
+    const pp=el("p",{style:{...textStyle(),margin:0}});
+    let wi=0;
+    S.outputText.split(/(\s+)/).forEach(seg=>{
+      if(/^\s+$/.test(seg)){pp.appendChild(document.createTextNode(seg));return;}
+      const ci=wi++;
+      const s=span({style:{background:S.hlWords&&ci%4===0?`${C.accent}18`:"transparent",borderRadius:"4px",padding:"0 2px"}});
+      s.textContent=seg;pp.appendChild(s);
+    });
+    phon.appendChild(pp);
+    grid.appendChild(phon);
+    wrap.appendChild(grid);
+  }
+  wrap.insertBefore(opts,wrap.firstChild);
+  return wrap;
+}
+
+// ── ORAL ──────────────────────────────────────────────────────
+function renderOral(){
+  const C=THEMES[S.theme];
+  const grid=div({class:"grid-2"});
+  const left=div({style:{display:"flex",flexDirection:"column",gap:"16px"}});
+
+  const srcPanel=div({class:"panel"});
+  const sph=el("h3",{style:{margin:"0 0 14px",fontSize:"15px",color:C.accent}});sph.textContent="📄 Texte à lire";srcPanel.appendChild(sph);
+  const sr=div({style:{display:"flex",gap:"8px"}});
+  [["phonetic","Phonétique 🇫🇷"],["original","Anglais 🇬🇧"]].forEach(([v,l])=>{
+    const b=btn({style:{flex:1,padding:"10px",borderRadius:"10px",border:`2px solid ${S.oralSrc===v?C.accent:C.accent+"33"}`,background:S.oralSrc===v?`${C.accent}22`:"transparent",color:C.text,cursor:"pointer",fontWeight:S.oralSrc===v?"700":"400",fontSize:"13px",fontFamily:"Georgia,serif"}});
+    b.textContent=l;b.addEventListener("click",()=>{S.oralSrc=v;render();});sr.appendChild(b);
+  });
+  srcPanel.appendChild(sr);left.appendChild(srcPanel);
+
+  const voicePanel=div({class:"panel"});
+  const vh=el("h3",{style:{margin:"0 0 12px",fontSize:"15px",color:C.accent}});vh.textContent="🎙️ Voix";voicePanel.appendChild(vh);
+  if(S.voices.length===0){
+    const vp=el("p",{style:{fontSize:"13px",color:C.text+"77",margin:0}});vp.textContent="Aucune voix détectée. Vérifiez les paramètres de votre appareil.";voicePanel.appendChild(vp);
+  } else {
+    const vs=sel({class:"inp",style:{width:"100%"},onChange:e=>S.selVoice=S.voices.find(v=>v.name===e.target.value)},
+      S.voices.map(v=>[v.name,`${v.name} (${v.lang})`]),S.selVoice?S.selVoice.name:"");
+    voicePanel.appendChild(vs);
+  }
+  const vn=el("p",{style:{fontSize:"11px",color:C.text+"66",margin:"8px 0 0"}});
+  vn.textContent="🔒 Synthèse vocale 100 % locale — aucune donnée audio transmise.";voicePanel.appendChild(vn);
+  left.appendChild(voicePanel);
+
+  const paramPanel=div({class:"panel"});
+  const parh=el("h3",{style:{margin:"0 0 14px",fontSize:"15px",color:C.accent}});parh.textContent="🎛️ Paramètres";paramPanel.appendChild(parh);
+  [
+    {lbl:`Vitesse : ${S.rate.toFixed(2)}×`,min:.3,max:1.5,step:.05,val:S.rate,fn:v=>S.rate=v},
+    {lbl:`Hauteur : ${S.pitch.toFixed(1)}`,min:.5,max:2,step:.1,val:S.pitch,fn:v=>S.pitch=v},
+    {lbl:`Volume : ${Math.round(S.vol*100)}%`,min:0,max:1,step:.05,val:S.vol,fn:v=>S.vol=v},
+  ].forEach(({lbl,min,max,step,val,fn})=>{
+    const wr=div({style:{marginBottom:"12px"}});
+    const lb=el("label",{style:{fontSize:"13px",color:C.text+"88",display:"block",marginBottom:"5px"}});lb.textContent=lbl;
+    const sl=inp({type:"range",min:String(min),max:String(max),step:String(step)});sl.value=String(val);
+    sl.addEventListener("input",e=>{fn(+e.target.value);render();});
+    wr.appendChild(lb);wr.appendChild(sl);paramPanel.appendChild(wr);
+  });
+  const wbw=el("label",{class:"check-row"});
+  const wbwcb=inp({type:"checkbox"});wbwcb.checked=S.wordByWord;wbwcb.addEventListener("change",e=>{S.wordByWord=e.target.checked;});
+  wbw.appendChild(wbwcb);wbw.appendChild(document.createTextNode(" Lecture mot par mot"));
+  paramPanel.appendChild(wbw);left.appendChild(paramPanel);
+
+  grid.appendChild(left);
+
+  const right=div({style:{display:"flex",flexDirection:"column",gap:"16px"}});
+  const playPanel=div({class:"panel",style:{display:"flex",gap:"10px",flexWrap:"wrap",justifyContent:"center"}});
+  playPanel.appendChild(btn({class:"btn-primary",onClick:()=>speakText(S.oralSrc==="phonetic"?(S.outputText||S.inputText):S.inputText,S.oralSrc==="original"?"en-GB":"fr-FR")},S.speaking?"⏸ En cours...":"▶ Lire"));
+  playPanel.appendChild(btn({class:"btn-secondary",style:{borderColor:C.text+"44",color:C.text},onClick:()=>{window.speechSynthesis&&window.speechSynthesis.cancel();S.speaking=false;S.curWord=-1;}},"⏹ Stop"));
+  right.appendChild(playPanel);
+
+  const textPanel=div({class:"panel panel-accent",style:{flex:1}});
+  const tl=div({style:{fontSize:"10px",fontWeight:"700",letterSpacing:".12em",color:C.accent,marginBottom:"14px"}});
+  tl.textContent=(S.oralSrc==="phonetic"?"PHONÉTIQUE FRANCISÉE":"ANGLAIS ORIGINAL")+" · Cliquez sur un mot pour l'entendre";
+  textPanel.appendChild(tl);
+  const tp=el("p",{style:{...textStyle(),margin:0}});
+  const src=S.oralSrc==="phonetic"?(S.outputText||""):S.inputText;
+  let wi2=0;
+  src.split(/(\s+)/).forEach(seg=>{
+    if(/^\s+$/.test(seg)){tp.appendChild(document.createTextNode(seg));return;}
+    const ci=wi2++;
+    const s=span({style:{background:S.curWord===ci?`${C.accent}66`:"transparent",borderRadius:"4px",padding:"0 2px",cursor:"pointer",textDecoration:"underline dotted",textDecorationColor:`${C.accent}55`}});
+    s.textContent=seg;s.addEventListener("click",()=>speakWord(seg));
+    tp.appendChild(s);
+  });
+  textPanel.appendChild(tp);
+  if(!src) {const e=el("p",{style:{color:C.text+"55",fontStyle:"italic",fontSize:"13px",margin:"8px 0 0"}});e.textContent="Transformez d'abord un texte.";textPanel.appendChild(e);}
+  right.appendChild(textPanel);
+  grid.appendChild(right);
+  return grid;
+}
+
+// ── BIBLIOTHÈQUE ──────────────────────────────────────────────
+function renderLibrary(){
+  const C=THEMES[S.theme];
+  const wrap=div();
+  const tabBar=div({style:{display:"flex",gap:"4px",marginBottom:"20px",borderBottom:`2px solid ${C.accent}22`}});
+  [["phonemes","🔤 Règles phonétiques"],["words","📖 Dictionnaire de mots"]].forEach(([k,l])=>{
+    const b=btn({style:{padding:"9px 18px",borderRadius:"8px 8px 0 0",border:"none",cursor:"pointer",fontWeight:S.dictTab===k?"700":"400",background:S.dictTab===k?C.paper:"transparent",color:S.dictTab===k?C.accent:C.text+"88",fontSize:"13px",fontFamily:"Georgia,serif"},onClick:()=>{S.dictTab=k;render();}});
+    b.textContent=l;tabBar.appendChild(b);
+  });
+  wrap.appendChild(tabBar);
+
+  if(S.dictTab==="phonemes"){
+    const info=el("p",{style:{color:C.text+"88",fontSize:"14px",margin:"0 0 18px"}});
+    info.textContent="Activez/désactivez ou modifiez les règles selon le profil de chaque utilisateur.";wrap.appendChild(info);
+
+    // Ajout règle
+    const addPanel=div({class:"panel",style:{border:`2px dashed ${C.accent}55`,marginBottom:"24px"}});
+    const ah=el("h3",{style:{margin:"0 0 14px",fontSize:"15px",color:C.accent}});ah.textContent="+ Ajouter une règle phonétique";addPanel.appendChild(ah);
+    const arow=div({style:{display:"flex",gap:"10px",flexWrap:"wrap"}});
+    const ig=inp({class:"inp",style:{width:"150px"},placeholder:"Graphème (ex: tion)"});ig.value=S.newRuleG;ig.addEventListener("input",e=>S.newRuleG=e.target.value);
+    const ip2=inp({class:"inp",style:{width:"150px"},placeholder:"Son français (ex: sion)"});ip2.value=S.newRuleP;ip2.addEventListener("input",e=>S.newRuleP=e.target.value);
+    const ie=inp({class:"inp",style:{flex:"1"},placeholder:"Exemple"});ie.value=S.newRuleEx;ie.addEventListener("input",e=>S.newRuleEx=e.target.value);
+    const icat=sel({class:"inp",onChange:e=>S.newRuleCat=e.target.value},[["Consonnes","Consonnes"],["Voyelles","Voyelles"],["Muettes","Muettes"],["Personnalisé","Personnalisé"]],S.newRuleCat);
+    const ab=btn({class:"btn-primary",style:{padding:"9px 20px",fontSize:"14px"},onClick:()=>{
+      if(!S.newRuleG) return;
+      S.rules.push({id:"c_"+Date.now(),grapheme:S.newRuleG,phoneme:S.newRuleP,example:S.newRuleEx,category:S.newRuleCat,active:true});
+      S.newRuleG="";S.newRuleP="";S.newRuleEx="";render();
+    }});ab.textContent="Ajouter";
+    [ig,ip2,ie,icat,ab].forEach(x=>arow.appendChild(x));
+    addPanel.appendChild(arow);wrap.appendChild(addPanel);
+
+    const cats=[...new Set(S.rules.map(r=>r.category))];
+    cats.forEach(cat=>{
+      const catDiv=div({style:{marginBottom:"24px"}});
+      const ch=el("h3",{style:{fontSize:"13px",fontWeight:"700",letterSpacing:".1em",color:C.accent,margin:"0 0 10px"}});
+      const icons={"Consonnes":"🔵","Voyelles":"🟠","Muettes":"⚪"};
+      const actives=S.rules.filter(r=>r.category===cat&&r.active).length;
+      const total=S.rules.filter(r=>r.category===cat).length;
+      ch.textContent=`${icons[cat]||"🟣"} ${cat.toUpperCase()} `;
+      ch.appendChild(span({style:{fontSize:"11px",color:C.text+"55",fontWeight:"400"}},`(${actives}/${total} actives)`));
+      catDiv.appendChild(ch);
+      const grid=div({style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"8px"}});
+      S.rules.filter(r=>r.category===cat).forEach(rule=>{
+        const row=div({style:{display:"flex",alignItems:"center",gap:"10px",padding:"10px 14px",borderRadius:"10px",background:rule.active?C.paper:C.bg,border:`1.5px solid ${rule.active?"#7C9D8E66":C.text+"22"}`,opacity:rule.active?1:.5,transition:"all .2s"}});
+        const cb=inp({type:"checkbox"});cb.checked=rule.active;cb.addEventListener("change",()=>{rule.active=!rule.active;render();});
+        row.appendChild(cb);
+        const info2=div({style:{flex:1}});
+        if(S.editRule===rule.id){
+          const er=div({style:{display:"flex",gap:"5px",alignItems:"center"}});
+          const eg=inp({class:"inp",style:{width:"75px",padding:"4px 8px",fontSize:"12px"}});eg.value=rule.grapheme;eg.addEventListener("input",e=>rule.grapheme=e.target.value);
+          const ep=inp({class:"inp",style:{width:"75px",padding:"4px 8px",fontSize:"12px"}});ep.value=rule.phoneme;ep.addEventListener("input",e=>rule.phoneme=e.target.value);
+          const ee=inp({class:"inp",style:{flex:"1",padding:"4px 8px",fontSize:"11px"},placeholder:"ex."});ee.value=rule.example;ee.addEventListener("input",e=>rule.example=e.target.value);
+          const eb=btn({style:{padding:"4px 10px",borderRadius:"6px",border:"none",background:C.accent,color:"#fff",cursor:"pointer",fontFamily:"Georgia,serif"},onClick:()=>{S.editRule=null;render();}});eb.textContent="✓";
+          [eg,span({style:{color:C.text+"55"}},"→"),ep,ee,eb].forEach(x=>er.appendChild(x));
+          info2.appendChild(er);
+        } else {
+          const ts=span();
+          ts.innerHTML=`<span style="font-family:monospace;font-weight:700;color:#7C9D8E;font-size:15px">${rule.grapheme}</span><span style="color:${C.text}66;margin:0 6px">→</span><span style="font-family:monospace;font-weight:700;color:${C.text};font-size:15px">${rule.phoneme||`<em style="font-size:12px;color:${C.text}55">muet</em>`}</span><span style="font-size:12px;color:${C.text}55;margin-left:8px">${rule.example}</span>`;
+          info2.appendChild(ts);
+        }
+        row.appendChild(info2);
+        const btns2=div({style:{display:"flex",gap:"4px"}});
+        const eb2=btn({style:{padding:"4px 8px",borderRadius:"6px",border:"none",background:`${C.accent}22`,cursor:"pointer",fontSize:"13px",fontFamily:"Georgia,serif"},onClick:()=>{S.editRule=S.editRule===rule.id?null:rule.id;render();}});eb2.textContent="✏️";
+        btns2.appendChild(eb2);
+        if(rule.id.startsWith("c_")){
+          const db=btn({style:{padding:"4px 8px",borderRadius:"6px",border:"none",background:"#ff000022",cursor:"pointer",fontSize:"13px",fontFamily:"Georgia,serif"},onClick:()=>{S.rules=S.rules.filter(r=>r.id!==rule.id);render();}});db.textContent="🗑";
+          btns2.appendChild(db);
+        }
+        row.appendChild(btns2);
+        grid.appendChild(row);
+      });
+      catDiv.appendChild(grid);wrap.appendChild(catDiv);
+    });
+  }
+
+  if(S.dictTab==="words"){
+    const dict=getMergedDict();
+    const info=el("p",{style:{color:C.text+"88",fontSize:"14px",margin:"0 0 18px"}});
+    info.innerHTML=`Le dictionnaire est prioritaire sur les règles phonétiques. Mots en <strong style="color:${C.accent}">orange</strong> = ajouts personnels. <span style="color:#27ae60;margin-left:6px">🟢 ${Object.keys(S.userDict).length} mots appris</span>`;
+    wrap.appendChild(info);
+    const addPanel=div({class:"panel",style:{border:`2px dashed ${C.accent}55`,marginBottom:"20px"}});
+    const ah=el("h3",{style:{margin:"0 0 14px",fontSize:"15px",color:C.accent}});ah.textContent="+ Ajouter un mot entier";addPanel.appendChild(ah);
+    const arow=div({style:{display:"flex",gap:"10px",flexWrap:"wrap",alignItems:"flex-end"}});
+    const en_=div();
+    const enl=el("label",{style:{fontSize:"11px",color:C.text+"66",display:"block",marginBottom:"4px"}});enl.textContent="MOT ANGLAIS";
+    const eni=inp({class:"inp",style:{width:"170px"},placeholder:"ex: beautiful"});eni.value=S.newWordEn;eni.addEventListener("input",e=>S.newWordEn=e.target.value);eni.addEventListener("keydown",e=>{if(e.key==="Enter") addWordEntry();});
+    en_.appendChild(enl);en_.appendChild(eni);
+    const fr_=div();
+    const frl=el("label",{style:{fontSize:"11px",color:C.text+"66",display:"block",marginBottom:"4px"}});frl.textContent="TRANSCRIPTION FRANÇAISE";
+    const fri=inp({class:"inp",style:{width:"170px"},placeholder:"ex: bioutifeul"});fri.value=S.newWordFr;fri.addEventListener("input",e=>S.newWordFr=e.target.value);fri.addEventListener("keydown",e=>{if(e.key==="Enter") addWordEntry();});
+    fr_.appendChild(frl);fr_.appendChild(fri);
+    const ab=btn({class:"btn-primary",style:{padding:"9px 20px",fontSize:"14px"},onClick:addWordEntry});ab.textContent="Ajouter";
+    [en_,span({style:{color:C.accent,fontWeight:"700",fontSize:"20px",paddingBottom:"8px"}},"→"),fr_,ab].forEach(x=>arow.appendChild(x));
+    addPanel.appendChild(arow);wrap.appendChild(addPanel);
+    function addWordEntry(){
+      if(!S.newWordEn.trim()||!S.newWordFr.trim()) return;
+      S.userDict[S.newWordEn.toLowerCase().trim()]=S.newWordFr.trim();
+      S.newWordEn="";S.newWordFr="";saveDict();render();
+    }
+    const allEntries=[
+      ...Object.entries(WORD_DICT).map(([en,fr])=>({en,fr,custom:false})),
+      ...Object.entries(S.userDict).filter(([k])=>!WORD_DICT[k]).map(([en,fr])=>({en,fr,custom:true})),
+    ].sort((a,b)=>a.en.localeCompare(b.en));
+    const dgrid=div({style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:"6px"}});
+    allEntries.forEach(({en,fr,custom})=>{
+      const row=div({style:{display:"flex",alignItems:"center",gap:"8px",padding:"9px 12px",borderRadius:"10px",background:C.paper,border:`1.5px solid ${custom?C.accent+"66":C.text+"18"}`}});
+      if(S.editWord===en){
+        const eg=inp({class:"inp",style:{width:"90px",padding:"3px 7px",fontSize:"12px"}});eg.value=en;
+        eg.addEventListener("blur",e=>{
+          const nk=e.target.value.toLowerCase().trim();
+          if(nk!==en){const v=S.userDict[en];delete S.userDict[en];S.userDict[nk]=v;saveDict();}
+        });
+        const ef=inp({class:"inp",style:{flex:"1",padding:"3px 7px",fontSize:"12px"}});ef.value=fr;
+        ef.addEventListener("blur",e=>{S.userDict[en]=e.target.value;saveDict();});
+        const eb=btn({style:{padding:"3px 8px",borderRadius:"5px",border:"none",background:C.accent,color:"#fff",cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"},onClick:()=>{S.editWord=null;render();}});eb.textContent="✓";
+        [eg,span({style:{color:C.text+"55"}},"→"),ef,eb].forEach(x=>row.appendChild(x));
+      } else {
+        row.appendChild(span({style:{fontFamily:"monospace",fontWeight:"700",color:custom?C.accent:C.text,fontSize:"14px",minWidth:"90px"}},en));
+        row.appendChild(span({style:{color:C.text+"44",fontSize:"12px"}},"→"));
+        row.appendChild(span({style:{fontFamily:"monospace",color:C.text+"cc",fontSize:"14px",flex:"1"}},fr));
+        if(custom){
+          row.appendChild(span({style:{fontSize:"10px",background:`${C.accent}22`,color:C.accent,borderRadius:"8px",padding:"1px 6px",whiteSpace:"nowrap"}},"perso"));
+          const btns_=div({style:{display:"flex",gap:"3px"}});
+          const eb=btn({style:{padding:"3px 7px",borderRadius:"5px",border:"none",background:`${C.accent}18`,cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"},onClick:()=>{S.editWord=en;render();}});eb.textContent="✏️";
+          const db=btn({style:{padding:"3px 7px",borderRadius:"5px",border:"none",background:"#ff000018",cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"},onClick:()=>{delete S.userDict[en];saveDict();render();}});db.textContent="🗑";
+          btns_.appendChild(eb);btns_.appendChild(db);row.appendChild(btns_);
+        }
+      }
+      dgrid.appendChild(row);
+    });
+    wrap.appendChild(dgrid);
+    const note=el("p",{style:{fontSize:"12px",color:C.text+"55",marginTop:"14px",fontStyle:"italic"}});
+    note.textContent=`🔒 ${Object.keys(S.userDict).length} mot(s) personnel(s) · ${Object.keys(WORD_DICT).length} mots de base · Données stockées localement sur votre appareil uniquement`;
+    wrap.appendChild(note);
+  }
+  return wrap;
+}
+
+// ── RÉGLAGES ─────────────────────────────────────────────────
+function renderSettings(){
+  const C=THEMES[S.theme];
+  const grid=div({class:"grid-2"});
+  const left=div({class:"panel"});
+  const h=el("h3",{style:{margin:"0 0 20px",color:C.accent,fontSize:"16px"}});h.textContent="🔤 Typographie";left.appendChild(h);
+  [
+    {lbl:"Police",comp:sel({class:"inp",style:{width:"100%"},onChange:e=>{S.font=e.target.value;savePrefs();render();}},FONTS.map(f=>[f.value,f.name]),S.font)},
+    {lbl:`Taille : ${S.fontSize}px`,type:"range",min:14,max:36,val:S.fontSize,fn:v=>{S.fontSize=v;savePrefs();}},
+    {lbl:`Interlignage : ${S.lineH}`,type:"range",min:1.4,max:2.6,step:.1,val:S.lineH,fn:v=>{S.lineH=v;savePrefs();}},
+    {lbl:`Espacement lettres : ${S.ltrSpc}em`,type:"range",min:0,max:.25,step:.01,val:S.ltrSpc,fn:v=>{S.ltrSpc=v;savePrefs();}},
+    {lbl:`Espacement mots : ${S.wrdSpc}em`,type:"range",min:0,max:.5,step:.02,val:S.wrdSpc,fn:v=>{S.wrdSpc=v;savePrefs();}},
+  ].forEach(({lbl,comp,type,min,max,step,val,fn})=>{
+    const wr=div({style:{marginBottom:"18px"}});
+    const lb=el("label",{style:{fontSize:"13px",color:C.text+"88",display:"block",marginBottom:"6px"}});lb.textContent=lbl;wr.appendChild(lb);
+    if(comp){wr.appendChild(comp);}
+    else{const sl=inp({type:"range",min:String(min),max:String(max),step:String(step||1)});sl.value=String(val);sl.addEventListener("input",e=>{fn(+e.target.value);render();});wr.appendChild(sl);}
+    left.appendChild(wr);
+  });
+  const note=el("p",{style:{fontSize:"11px",color:C.text+"66",margin:"10px 0 0"}});
+  note.textContent="🔒 Préférences sauvegardées localement. Ne quittent jamais votre appareil.";left.appendChild(note);
+  grid.appendChild(left);
+
+  const right=div({style:{display:"flex",flexDirection:"column",gap:"16px"}});
+  const prev=div({class:"panel"});
+  const ph=el("h3",{style:{margin:"0 0 14px",color:C.accent,fontSize:"16px"}});ph.textContent="👁 Aperçu";prev.appendChild(ph);
+  const pbox=div({style:{...textStyle(),background:C.bg,padding:"18px",borderRadius:"10px",border:`1px solid ${C.accent}22`}});
+  pbox.textContent=S.outputText||"Aperçu du rendu typographique avec vos réglages.";prev.appendChild(pbox);right.appendChild(prev);
+  const about=div({class:"panel"});
+  const ah=el("h3",{style:{margin:"0 0 12px",color:C.accent,fontSize:"16px"}});ah.textContent="ℹ️ À propos";about.appendChild(ah);
+  about.innerHTML+=`<p style="font-size:13px;line-height:1.8;color:${C.text}99;margin:0"><strong style="color:${C.text}">DysLing v28</strong> — Outil pédagogique 100 % local, sans aucune dépendance externe. Fonctionne complètement hors ligne. Le <strong style="color:${C.text}">Correcteur intelligent</strong> reconnaît les écritures phonétiques francisées des élèves et les corrige vers l'anglais, en enrichissant son dictionnaire à chaque usage validé.</p>`;
+  right.appendChild(about);
+  grid.appendChild(right);
+  return grid;
+}
+
+// ── PAGE RGPD ────────────────────────────────────────────────
+function renderRGPDPage(){
+  const C=THEMES[S.theme];
+  const wrap=div({class:"panel",style:{border:`2px solid ${C.accent}44`}});
+  const top=div({style:{display:"flex",alignItems:"center",gap:"12px",marginBottom:"20px"}});
+  top.appendChild(span({style:{fontSize:"36px"}},"🔒"));
+  const info=div();
+  const ih=el("h2",{style:{margin:0,color:C.accent,fontSize:"20px"}});ih.textContent="Politique de confidentialité";
+  info.appendChild(ih);
+  const ip=el("p",{style:{margin:0,fontSize:"12px",color:C.text+"66"}});ip.textContent="Conforme RGPD · CNIL · Éducation Nationale";
+  info.appendChild(ip);top.appendChild(info);wrap.appendChild(top);
+
+  const cards=[
+    {i:"🏠",t:"Traitement 100 % local",b:"Tous les textes sont traités dans votre navigateur. Aucune donnée ne transite par un serveur."},
+    {i:"📦",t:"Zéro dépendance externe",b:"DysLing v28 n'utilise aucune bibliothèque externe (React, CDN, etc.). Le fichier fonctionne entièrement hors ligne."},
+    {i:"🍪",t:"Zéro cookie de traçage",b:"Aucun cookie publicitaire ni analytique. Seules vos préférences sont stockées en localStorage."},
+    {i:"👤",t:"Aucune donnée personnelle",b:"DysLing ne collecte ni nom, ni email, ni identifiant. Aucun compte requis."},
+    {i:"🤖",t:"Correction IA — opt-in strict",b:"La correction IA est désactivée par défaut. Si activée après consentement, seul le texte pédagogique est transmis à Anthropic (USA, clauses contractuelles types CE)."},
+    {i:"🌍",t:"Transfert hors UE (IA uniquement)",b:"En cas d'activation du mode IA, le texte est transféré vers des serveurs aux États-Unis (Anthropic). Ce transfert est encadré par les clauses contractuelles types (art. 46 RGPD)."},
+    {i:"📚",t:"Base légale éducative",b:"Art. 6.1.e RGPD (service public) ou art. 6.1.f (intérêt légitime pédagogique). Aucune donnée d'élève collectée."},
+    {i:"🏫",t:"Conformité CNIL / Éducation Nationale",b:"Compatible avec les exigences CNIL pour les établissements scolaires. Ne collecte pas de données d'élèves."},
+  ];
+  const grid=div({style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}});
+  cards.forEach(({i,t,b})=>{
+    const card=div({class:"rgpd-card"});
+    card.innerHTML=`<div style="font-size:22px;margin-bottom:6px">${i}</div><strong style="font-size:14px;color:${C.text};display:block;margin-bottom:6px">${t}</strong><p style="margin:0;font-size:13px;color:${C.text}88;line-height:1.6">${b}</p>`;
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+
+  // LocalStorage info
+  const lsBox=div({style:{padding:"14px",background:`${C.accent}10`,borderRadius:"10px",border:`1px solid ${C.accent}33`,marginBottom:"14px"}});
+  lsBox.innerHTML=`<strong style="font-size:13px;color:${C.accent}">💾 Données stockées localement (localStorage) :</strong><ul style="margin:8px 0 0 16px;font-size:13px;color:${C.text}88;line-height:1.8"><li><strong>dsl_prefs</strong> — préférences typographiques</li><li><strong>dsl_dict</strong> — dictionnaire personnel enrichi</li><li><strong>dsl_learn_log</strong> — journal d'apprentissage</li><li><strong>dsl_rgpd</strong> — date et état du consentement IA</li></ul><p style="margin:8px 0 0;font-size:12px;color:${C.text}66">Ces données ne quittent jamais votre appareil et peuvent être supprimées à tout moment depuis les outils de votre navigateur.</p>`;
+  wrap.appendChild(lsBox);
+
+  // Statut consentement
+  const status=div({style:{padding:"16px",background:`${C.accent}12`,borderRadius:"10px",border:`1px solid ${C.accent}44`}});
+  const sl=span({style:{fontSize:"14px",fontWeight:"700",color:C.accent}});sl.textContent="✅ Statut du consentement IA : ";status.appendChild(sl);
+  const sv=span({style:{fontSize:"13px",color:C.text+"88"}});
+  if(S.rgpdOk&&S.rgpdConsentDate){
+    sv.textContent=`Activé le ${new Date(S.rgpdConsentDate).toLocaleDateString("fr-FR")} — la correction IA est disponible.`;
+    status.appendChild(sv);
+    const retract=btn({style:{marginLeft:"12px",padding:"4px 12px",borderRadius:"20px",border:`1px solid ${C.accent}`,background:"transparent",color:C.accent,fontSize:"11px",cursor:"pointer",fontFamily:"Georgia,serif"},onClick:()=>{
+      S.rgpdOk=false;S.rgpdConsentDate=null;saveRgpd(false);render();
+    }});retract.textContent="Retirer le consentement";status.appendChild(retract);
+  } else {
+    sv.textContent="Non activé — la correction IA est désactivée.";status.appendChild(sv);
+    const activate=btn({class:"btn-primary",style:{marginLeft:"12px",fontSize:"12px",padding:"7px 16px"},onClick:()=>{S.showRGPD=true;render();}});
+    activate.textContent="Activer la correction IA";status.appendChild(activate);
+  }
+  wrap.appendChild(status);
+  return wrap;
+}
+
+// ── MODALE RGPD ───────────────────────────────────────────────
+function renderRGPDModal(){
+  const C=THEMES[S.theme];
+  const overlay=div({class:"modal-overlay"});
+  const box=div({class:"modal-box"});
+  box.innerHTML=`<div style="font-size:32px;margin-bottom:10px">🔒</div><h2 style="margin:0 0 4px;color:${C.accent};font-size:20px">Activation du mode IA</h2><p style="margin:0 0 16px;font-size:12px;color:${C.text}66">Information obligatoire — Transfert de données hors UE</p>`;
+  const content=div({style:{fontSize:"13px",lineHeight:"1.85",color:C.text+"CC",maxHeight:"280px",overflowY:"auto",background:`${C.accent}08`,padding:"16px",borderRadius:"10px",marginBottom:"16px"}});
+  content.innerHTML=`<strong>Ce que vous devez savoir :</strong><ul style="margin:8px 0 0 16px;line-height:2"><li><strong>Traitement de base :</strong> 100 % local, aucune donnée envoyée.</li><li><strong>Mode IA (optionnel) :</strong> le texte pédagogique saisi est transmis à l'API d'Anthropic (États-Unis).</li><li><strong>Transfert hors UE :</strong> encadré par les clauses contractuelles types de la Commission européenne (art. 46 RGPD).</li><li><strong>Aucune donnée personnelle</strong> ne doit figurer dans les textes traités.</li><li><strong>Consentement révocable</strong> à tout moment depuis l'onglet Confidentialité.</li></ul><p style="margin:12px 0 0;font-size:11px;color:${C.text}66">Base légale : art. 6.1.a RGPD (consentement) · Responsable de traitement : l'établissement utilisant l'outil</p>`;
+  box.appendChild(content);
+  const btns=div({style:{display:"flex",gap:"12px",justifyContent:"flex-end"}});
+  btns.appendChild(btn({class:"btn-secondary",onClick:()=>{S.showRGPD=false;render();}},"Fermer"));
+  btns.appendChild(btn({class:"btn-primary",onClick:()=>{S.rgpdOk=true;S.rgpdConsentDate=new Date().toISOString();saveRgpd(true);S.showRGPD=false;render();}},"J'ai compris — activer le mode IA"));
+  box.appendChild(btns);
+  overlay.appendChild(box);
+  overlay.addEventListener("click",e=>{if(e.target===overlay){S.showRGPD=false;render();}});
+  return overlay;
+}
+
+// ── UTILITAIRES ───────────────────────────────────────────────
+function textStyle(){
+  return{fontFamily:S.font,fontSize:`${S.fontSize}px`,lineHeight:S.lineH,letterSpacing:`${S.ltrSpc}em`,wordSpacing:`${S.wrdSpc}em`,color:THEMES[S.theme].text};
+}
+
+async function doCorrect(dict){
+  if(!S.corrWriting.trim()) return;
+  if(S.corrAiMode&&!S.rgpdOk){S.showRGPD=true;render();return;}
+  S.corrLoading=true;S.corrResult=null;S.openChip=null;S.chipOverrides={};S.chipCustom={};
+  render();
+  if(!S.corrAiMode){
+    await new Promise(r=>setTimeout(r,50)); // tick pour afficher le spinner
+    const res=correctText(S.corrWriting,dict,S.rules);
+    S.corrResult=res;S.corrLoading=false;render();
+    return;
+  }
+  try{
+    const local=correctText(S.corrWriting,dict,S.rules);
+    const localHint=local.corrections.map(c=>`${c.original}→${c.correct}(${Math.round((c.confidence||0)*100)}%)`).join(", ");
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",max_tokens:2000,
+        messages:[{role:"user",content:
+`Tu es un correcteur anglais expert pour élèves dyslexiques francophones.
+L'élève a écrit (phonétique francisée) : "${S.corrWriting}"
+Moteur local suggère : ${localHint}
+
+Règles : sh→ch, th→s, igh→aï, oo→ou, ee→ii, ay→é, er/ir/ur→eur, ou→aou, ow→o
+
+Réponds UNIQUEMENT en JSON sans markdown :
+{"correctedText":"...","encouragement":"message bienveillant français","corrections":[{"original":"mot","correct":"correction","wasOk":false,"confidence":"high","explanation":"court pourquoi","suggestions":["alt1","alt2"]}]}`
+        }]
+      })
+    });
+    const d=await resp.json();
+    const txt=d.content?d.content.map(c=>c.text).join(""):"";
+    const parsed=JSON.parse(txt.replace(/```json|```/g,"").trim());
+    parsed.corrections=parsed.corrections.map(c=>({...c,confidence:c.confidence==="high"?.95:c.confidence==="medium"?.7:.45,method:"ai"}));
+    S.corrResult=parsed;
+  }catch(e){
+    const res=correctText(S.corrWriting,dict,S.rules);
+    S.corrResult=res;
+  }
+  S.corrLoading=false;render();
+}
+
+function speakText(text, lang){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel(); S.curWord=-1;
+  const u=new SpeechSynthesisUtterance(text);
+  if(S.selVoice) u.voice=S.selVoice;
+  u.rate=S.rate;u.pitch=S.pitch;u.volume=S.vol;
+  u.lang=lang||"fr-FR";
+  u.onstart=()=>{S.speaking=true;};
+  u.onend=()=>{S.speaking=false;};
+  window.speechSynthesis.speak(u);
+}
+function speakWord(w){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(w);
+  if(S.selVoice) u.voice=S.selVoice;
+  u.rate=S.rate*.75;u.pitch=S.pitch;u.volume=S.vol;
+  u.lang=S.oralSrc==="original"?"en-GB":"fr-FR";
+  window.speechSynthesis.speak(u);
+}
+
+// ── BOOT ─────────────────────────────────────────────────────
+loadState();
+// Voix
+if(window.speechSynthesis){
+  const loadVoices=()=>{
+    const all=window.speechSynthesis.getVoices();
+    const list=[...all.filter(v=>v.lang.startsWith("fr")),...all.filter(v=>v.lang.startsWith("en"))];
+    if(list.length>0&&!S.selVoice){S.selVoice=list[0];}
+    S.voices=list;
+    render();
+  };
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged=loadVoices;
+}
+render();
+</script>
+</body>
+</html>
